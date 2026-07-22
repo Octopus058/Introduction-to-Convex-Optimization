@@ -2,25 +2,31 @@
 \usepackage{tikz}
 \usepackage{amsmath}
 \usepackage{amsfonts}
-\usepackage{amssymb}
 \usetikzlibrary{arrows.meta, calc}
 
 \colorlet{l1color}{blue!50!cyan}
 \colorlet{l2color}{red!60!orange}
 
 \begin{document}
-\begin{tikzpicture}[>=Stealth, scale=1.0]
+\begin{tikzpicture}[>=Stealth, scale=3.2, transform shape]
 
-  \fill[gray!12] (-12,-11) rectangle (12,11);
+  \fill[gray!6] (-8,-5.5) rectangle (8,5.5);
 
   \begin{scope}[opacity=0.06]
-    \foreach \x in {-6,-4,-2,0,2,4,6} {
-      \draw[black, thin] (\x,-6) -- (\x,6);
-      \draw[black, thin] (-6,\x) -- (6,\x);
+    \foreach \x in {-7,-5,-3,-1,1,3,5,7} {
+      \draw[black, thin] (\x,-5.2) -- (\x,5.2);
+    }
+    \foreach \y in {-4,-2,0,2,4} {
+      \draw[black, thin] (-7.8,\y) -- (7.8,\y);
     }
   \end{scope}
 
-  \begin{scope}[shift={(0,0.2)}, scale=0.85]
+  \draw[->, black!25, thin] (-7.9,0) -- (7.9,0);
+  \draw[->, black!25, thin] (0,-5.4) -- (0,5.4);
+  \node[black!20, font=\small] at (8.0,-0.25) {$x_1$};
+  \node[black!20, font=\small] at (-0.25,5.5) {$x_2$};
+
+  \begin{scope}[scale=0.85]
 
     \fill[l2color!10, opacity=0.15] (0,0) circle (5.0);
     \draw[l2color, line width=1.8pt] (0,0) circle (5.0);
@@ -36,25 +42,28 @@
         ({1.5 + 1.0*\r*cos(\t)}, {1.0 + 0.8*\r*sin(\t)});
     }
 
-    \fill[red!80!black] (1.5, 1.0) circle (5pt);
-    \node[red!80!black, font=\small, anchor=south west] at (1.7, 1.2) {$x^*$};
+    \fill[red!80!black] (1.5, 1.0) circle (3pt);
+    \node[red!80!black, font=\small, anchor=south west] at (1.0, 0.3) {$x^*$};
 
-    \draw[red!50, line width=2.0pt, ->]
+    \draw[red!80!black, line width=2.0pt, -{Stealth[length=16pt, width=12pt]}]
       (4.5, 4.0) -- (3.8, 4.0) -- (3.8, 3.2) -- (3.2, 3.2)
       -- (3.2, 2.5) -- (2.6, 2.5) -- (2.6, 1.9) -- (2.1, 1.9)
-      -- (2.1, 1.5) -- (1.5, 1.5) -- (1.5, 1.0);
+      -- (2.1, 1.5) -- (1.5, 1.5) -- (1.5, 1.06);
 
-    \node[red!50, font=\large\bfseries\sffamily, anchor=south west]
-      at (4.0, 4.2) {ISTA};
+    \node[red!80!black, font=\large\bfseries\sffamily, anchor=south west]
+      at (4.0, 4.2) {FISTA};
 
     \foreach \pt in {(3.8,4.0), (3.8,3.2), (3.2,3.2), (3.2,2.5), (2.6,2.5), (2.6,1.9), (2.1,1.9), (2.1,1.5), (1.5,1.5)} {
-      \fill[red!40] \pt circle (2.5pt);
+      \fill[red!55!black] \pt circle (2.5pt);
     }
 
-    \draw[->, black!25, thin] (-6.8,0) -- (7.2,0);
-    \draw[->, black!25, thin] (0,-6.5) -- (0,7.2);
-    \node[black!20, font=\small] at (7.4,-0.3) {$x_1$};
-    \node[black!20, font=\small] at (-0.3,7.4) {$x_2$};
+    % Gradient descent — dense zigzag (oscillates across the narrow valley)
+    \draw[black!85, line width=1.6pt, -{Stealth[length=16pt, width=12pt]}]
+      (5.5, -3.5) -- (4.0, -1.6) -- (3.5, -0.8) -- (2.9, -0.3)
+      -- (2.6, 0.1) -- (2.1, 0.4) -- (1.9, 0.65) -- (1.65, 0.8)
+      -- (1.5, 1.03);
+    \node[black!85, font=\large\bfseries\sffamily, anchor=south west]
+      at (5, -4) {GD};
 
   \end{scope}
 
