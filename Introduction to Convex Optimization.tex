@@ -3,8 +3,8 @@
 % ---- Title Information ----
 \title{Introduction to Convex Optimization}
 \author{Lancet Ross}
-\date{Jul 22, 2026}
-\version{1.0}
+\date{Sept 30, 2026}
+\version{1.1}
 \extrainfo{``You don't need a starting point, you don't need to babysit the algorithm. --- Stephen Boyd''}
 \cover{cover.pdf}
 
@@ -38,8 +38,9 @@ This tutorial is designed to introduce the basic concepts of convex optimization
 mathematical foundations to practical algorithms. It is intended for readers who have some
 background in linear algebra — you should know what a matrix is, what eigenvalues are, and
 how to multiply matrices without breaking a sweat. If these terms sound unfamiliar, you may
-want to read my linear algebra tutorial first. Some familiarity with MATLAB is also helpful
-but not required; the code examples are simple enough to translate to Python or Julia.
+want to read my linear algebra tutorial first. No programming background is required. The
+algorithms are written out as pseudocode and formulas, and you can implement them in
+whatever language you prefer.
 
 The tutorial mainly follows Prof.\ Ling Qing's open course at USTC. His lectures are clear,
 intuitive, and full of geometric insight — I cannot recommend them enough. You can find the full
@@ -65,9 +66,9 @@ Forward-Backward Splitting), and second-order methods for nonlinear least square
 
 Unlike most convex optimization textbooks that either get lost in excessive mathematical rigor
 or jump straight to theory without showing the algorithmic landscape, this tutorial tries to strike
-a balance. Every algorithm is accompanied by intuition, convergence analysis, and MATLAB
-code. The proofs are included where they illuminate the idea; they are omitted or sketched
-where they become tedious.
+a balance. Every algorithm is accompanied by intuition and convergence analysis, and the
+main ones are written out as pseudocode. The proofs are included where they illuminate
+the idea; they are omitted or sketched where they become tedious.
 
 \subsection*{How to read this tutorial}
 
@@ -93,9 +94,30 @@ Now I think it is time to start.
 \mainmatter
 
 \chapter{Convex Sets}
+
+\subsection*{Overview}
+
+Most of this book answers one question: how do we find the best point in a set, and how do
+we know when we have found it? Neither half makes sense until we say what kind of set we
+are searching over, and that is what this chapter is about. Convexity is the property that
+makes optimization tractable. It is a property of sets before it is a property of
+functions, so the book has to start here.
+
+We begin with the three definitions that everything else rests on: affine sets, convex
+sets, and convex cones, together with the hulls they generate. Then we collect the examples
+worth recognizing at a glance: hyperplanes, halfspaces, balls, ellipsoids, polyhedra,
+simplices, and the cone of positive semidefinite matrices. They show up in real problems,
+and they will reappear in every chapter that follows.
+
+The rest of the chapter is a toolkit. Checking the definition directly is almost never how
+you prove that a set is convex. Instead we gather the operations that preserve convexity:
+intersection, affine maps, the perspective function, and linear fractional functions. After
+that we build convex sets out of sets we already know.
+
+
 \section{Affine and convex sets}
 \subsection{Affine sets}
-A set C is affine if the line through any 2 distinct points in C lies in C. In other words,
+A set C is affine if the line through any two distinct points in C lies in C. In other words,
 C contains all linear combinations of its points, provided the coefficients sum to 1.
 
 If C is an affine set, and $x_0 \in C$, then we call the new affine set
@@ -140,7 +162,7 @@ And denoted $\textbf{aff} \; C$:
 \]
 
 \subsection{Convex sets}
-A set C is convex if the line segment between any 2 points in C lies in C. In other words,
+A set C is convex if the line segment between any two points in C lies in C. In other words,
 for any $x_1, x_2 \in C$ and $\theta \in [0, 1]$, we have
 \[
 \theta x_1 + (1 - \theta) x_2 \in C.
@@ -292,7 +314,7 @@ independent points in $\mathbb{R}^n$ to form a simplex.
 And here is an important property that simplices must be polyhedra.
 
 It's not always easy to see, before we start, there is a linear algebra problem to solve,
-why a column full rank matrix $B$ can be left multiplied by a invertible squared matrix $A$ and
+why a column full rank matrix $B$ can be left multiplied by an invertible squared matrix $A$ and
 get $[I \; 0]^T$.
 
 We can assume
@@ -323,7 +345,7 @@ and left multiply $A$ to both sides:
 A x = A v_0 + A B y.
 \]
 
-Divide this equation to 2 parts:
+Divide this equation into two parts:
 \begin{align}
 A_1x &= A_1 v_0 + y \\
 A_2x &= A_2 v_0
@@ -367,7 +389,7 @@ f(x) = Ax + b,
 \]
 where $A$ is a linear transformation and $b \in \mathbb{R}^m$ is a constant vector. 
 
-There is a also different definition of affine function, they are equal:
+There is also a different definition of affine function, they are equal:
 \[
 f(\lambda x_1 + (1 - \lambda) x_2) = \lambda f(x_1) + (1 - \lambda) f(x_2) \quad \text{for all } x_1, x_2 \in \mathbb{R}^n, \; \lambda \in \mathbb{R}.
 \]
@@ -509,6 +531,29 @@ f_{ij} = \frac{P_{ij}}{\sum_{k=1}^{n} P_{ik}}.
 This mapping is linear fractional, also the convexity preserves.
 
 \chapter{Convex Functions}
+
+\subsection*{Overview}
+
+Chapter 1 was about the sets we are allowed to search over, and this chapter is about the
+functions we are allowed to minimize. A convex function is the function-side counterpart of
+a convex set, and almost every result later in the book traces back to the definitions
+here. If Chapter 1 gave us the landscape, this chapter gives us the terrain.
+
+We begin with the definition, then reach for three shortcuts that test convexity without
+touching it. They are the restriction of $f$ to a line, the first-order condition, and the
+second-order condition. After that we catalog the examples worth memorizing: exponentials,
+powers, norms, the max function, log-sum-exp, the geometric mean, and log-determinant. We
+also meet Jensen's inequality, which ties them all together.
+
+From there the chapter becomes constructive: nonnegative weighted sums, composition with an
+affine map, pointwise maximum and supremum, composition, and the perspective all build new
+convex functions out of old ones. Two objects deserve special attention. The conjugate
+function looks like a curiosity now, but it is the seed of the next chapter on duality.
+Quasiconvexity is what remains when convexity is just out of reach: the sublevel sets are
+still convex, but the gradient carries far less information. A point with
+$\nabla f(x) = 0$ need not be a minimizer.
+
+
 \section{Concepts and examples}
 \subsection{Definition}
 
@@ -548,7 +593,7 @@ f(x) & x \in \textbf{dom } f \\
 \end{cases}
 \]
 
-Prof. Ling gives a humorous metaphor here. Imagine $f(x)$ as a pot, it's extended-value
+Prof. Ling gives a humorous metaphor here. Imagine $f(x)$ as a pot, its extended-value
 extension is still the pot itself in the pot area, and reaches the sky outside of it, or,
 a super pot.
 
@@ -637,7 +682,7 @@ These functions can all be judged for convexity using second-order conditions. W
 talk about a few interesting functions below.
 
 \subsubsection{Norms} Norms are not just $l_p$ norms, they are only part of the norm family.
-A norm $P(x)$ has 3 properties:
+A norm $P(x)$ has three properties:
 \begin{itemize}
   \item $P(ax) = |a|P(x)$
   \item $P(x + y) \leq P(x) + P(y)$
@@ -888,7 +933,7 @@ g(x, t) = t\log(t) - tlog(x),
 and convex on $\mathbb{R}^2_{++}$. This is often called relative entropy of $x$ and $t$.
 For $x = 1$, $g$ reduces to the negative entropy.
 
-The relative entropy of 2 vectors $u, v \in \mathbb{R}^n_{++}$ defined as
+The relative entropy of two vectors $u, v \in \mathbb{R}^n_{++}$ defined as
 \[
 \sum_{i = 1}^n u_i \log(u_i/v_i)
 \]
@@ -906,7 +951,7 @@ D_{kl}(u, v) \geq 0
 \]
 and strictly greater than 0 when $u \neq v$.
 
-K-L divergence is a special case of Bregman divergence, and it's widely used for it's
+K-L divergence is a special case of Bregman divergence, and it's widely used for its
 convexity.
 
 \section{The conjugate function}
@@ -919,7 +964,7 @@ f^*(y) = \sup_{x \in \textbf{dom } f} (y^T x - f(x)),
 \]
 is called the conjugate of $f$.
 
-There are 2 properties of conjugate function:
+There are two properties of the conjugate function:
 \begin{itemize}
   \item If $f$ is differentiable, the corresponding $x$ must satisfy $f'(x) = y$.
   \item The conjugate function is convex.
@@ -1083,7 +1128,7 @@ if $f(x) > 0$ and $\log(f)$ is convex. Thus $f$ is log-convex if and only if $1/
 log-concave.
 
 Log-convex is stronger than convex, log-concave is weaker than concave. That is to say,
-there are 2 properties:
+there are two properties:
 \begin{itemize}
   \item a log-convex function is convex.
   \item a concave function is log-concave.
@@ -1096,6 +1141,33 @@ edition.
 
 \newpage
 \chapter{Convex Optimization Problems}
+
+\subsection*{Overview}
+
+Now we can write down an optimization problem properly, and this chapter sets up the
+vocabulary: objective, constraints, feasible set, optimal value, active and inactive
+constraints. Then it narrows the field to the problems this book is actually about. A
+convex optimization problem has a convex objective, convex inequality constraints, and
+affine equality constraints. That single restriction has a remarkable consequence: every
+local minimum is also a global one.
+
+Once the problem is written down, the natural question is how to recognize a solution. For
+differentiable objectives there is a clean answer: the optimality criterion is
+$\nabla f_0(x^*)^T (y - x^*) \geq 0$ for every feasible $y$. We work it out in the three
+cases that come up constantly: no constraints at all, equality constraints only, and
+nonnegativity constraints only. The last one yields complementarity, which we will meet
+again as the KKT conditions.
+
+The second half of the chapter is a tour of the standard problem classes. In practice you
+rarely invent a problem, and you recognize one. Linear programs, quadratic programs,
+quadratically constrained quadratic programs, and semidefinite programs form a family of
+increasing generality. We look at where each one turns up: the diet problem, least squares
+and its regularized variants, Markowitz portfolio optimization, and the
+largest-singular-value problem that can be rewritten as an LMI. The chapter closes with
+Pareto optimality and multicriterion problems, which are hard in general. Ridge regression
+is the lucky exception, and these problems set the stage for duality.
+
+
 \section{Optimization problems}
 \subsection{Basic terminology}
 We use
@@ -1115,7 +1187,7 @@ The domain of the optimization problem is defined as
 \mathcal{D} = \bigcap_{i = 0}^m \textbf{dom } f_i \cap \bigcap_{i = 0}^p \textbf{dom } h_i.
 \]
 A point $x \in \mathcal{D}$ is feasible if it satisfies the constraints. The problem is
-feasible if there exists at least 1 feasible point. The set of all feasible points is called
+feasible if there exists at least one feasible point. The set of all feasible points is called
 feasible set or constraint set.
 
 The optimal value $p^*$ is defined as
@@ -1154,7 +1226,7 @@ feasibility problem
 \end{align*}
 
 \subsection{Expressing problems in standard form}
-We refer (9) as an standard form of optimization problems. We obeys that the right side
+We refer (9) as a standard form of optimization problems. We obey that the right side
 of the constraints are 0.
 
 One of the most common problems is the box constraints.
@@ -1205,7 +1277,7 @@ such that $x = \Phi(z)$. The optimization problem becomes
   \min \; &f_0(\Phi(z)) \\
   \text{s.t.} \; &f_i(\Phi(z)) \leq 0, \; i = 1, 2, \ldots, m.
 \end{align*}
-We should notice 2 things, the relationship of 2 optimal sets is $x^* = \Phi(z^*)$ and
+We should notice two things, the relationship of two optimal sets is $x^* = \Phi(z^*)$ and
 our goal is to make the problem easier. If eliminating constraints let things be worse,
 stop it.
 
@@ -1252,7 +1324,7 @@ introduce them later.
 
 \subsection{Some confusing definitions}
 If $f_0$ is concave, does we call these concave optimization problems? No. Optimization
-problems are divided into 2 kinds, convex and non-convex. Don't make a fool of yourself.
+problems are divided into two kinds, convex and non-convex. Don't make a fool of yourself.
 
 If $f_0$ is quasiconvex, we call these quasiconvex optimization problems, they are
 one of the more straightforward part of the non-convex optimization problems.
@@ -1270,7 +1342,7 @@ f_0(x) = \inf \{ f_0(z) \;|\; z \text{ is feasible}, \; ||z - x||_2 \leq R^2 \}
 \]
 for some $R > 0$.
 
-Assume $x$ is not globally optimal, there must be $y$ satisfies $f_0(y) < f_0(x)$ and
+Assume $x$ is not globally optimal, there must be $y$ that satisfies $f_0(y) < f_0(x)$ and
 $||y - x||_2 > R$. Consider a $z$ defined as
 \[
 z = (1 - \theta) x + \theta y, \; \theta = \frac{R}{||y - x||_2}.
@@ -1303,7 +1375,7 @@ Also we have
 \[
 \left. \frac{d}{dt} f_0(z(t)) \; \right|_{t = 0} = {\nabla f_0(x^*)}^T (y - x^*) < 0.
 \]
-Hence, there is a small positive $t$ satisfies $f_0(z(t)) < f_0(x)$, which is
+Hence, there is a small positive $t$ that satisfies $f_0(z(t)) < f_0(x)$, which is
 impossible.
 
 \subsection{Problems of lacking constraints}
@@ -1315,7 +1387,7 @@ Consider a problem with only equality constraints
   \text{s.t.} \; &A x = b
 \end{align*}
 
-If there is a $x$ satisfies $A x = b$, it's optimal if and only if
+If there is an $x$ that satisfies $A x = b$, it's optimal if and only if
 \[
 \nabla f_0(x)^T (y - x) \geq 0
 \]
@@ -1325,7 +1397,7 @@ for any $y$ satisfies $A y = b$. This is equivalent to
 \]
 for any $v$ satisfies $A v = 0$, i.e, $v \in \mathcal{N}(A)$.
 
-Here we have 2 cases:
+Here we have two cases:
 \begin{itemize}
   \item If $v = 0$, then $x = A^{-1} b$ is optimal.
   \item If $v \neq 0$, we know a subspace is closed under scalar multiplication, so
@@ -1347,7 +1419,7 @@ The optimality criterion is
 \]
 for any $y \succeq 0$.
 
-Let's talk about it in 2 cases.
+Let's talk about it in two cases.
 \begin{itemize}
   \item If $\nabla f_0(x) \preceq 0$, $\nabla f_0(x)^T y$ reaches $-\infty$ when
   $y \rightarrow \infty$ so the optimality criterion breaks.
@@ -1396,7 +1468,7 @@ The first step is to add slack variables $s_i$ which will result in
 &s \succeq 0
 \end{align*}
 
-The second step is to divide $x$ into 2 negative parts $x^+$ and $x^-$ where $x = x^+ - x^-$
+The second step is to divide $x$ into two negative parts $x^+$ and $x^-$ where $x = x^+ - x^-$
 and $x^+, x^- \succeq 0$. Then we have
 \begin{align*}
 \min \; &c^T x^+ - c^T x^- + d\\
@@ -1618,6 +1690,32 @@ but to give a background for the next chapter, which is about duality.
 
 \newpage
 \chapter{Duality}
+
+\subsection*{Overview}
+
+This is the theoretical center of the book. The idea is simple to state and surprisingly
+deep: every optimization problem comes with a shadow problem, built from the same data,
+whose optimal value is a lower bound on the original one. We introduce the Lagrangian, and
+from it the dual function, which is always concave, whether or not the original problem was
+convex. That alone is worth the price of admission. It means the dual problem is always a
+convex optimization problem, even when the primal is not.
+
+The important question is when the bound is tight, and the answer splits into two cases.
+Weak duality always holds, but strong duality needs a condition, and Slater's condition is
+the one to remember. We then look at duality from three angles: geometric, saddle-point,
+and economic. Different readers find different ones convincing, and the saddle-point view
+is the one that pays off later.
+
+Everything in the chapter converges on the Karush–Kuhn–Tucker (KKT) conditions: primal
+feasibility, dual feasibility, complementary slackness, and stationarity. For convex
+problems with a zero duality gap they are necessary and sufficient, which makes them the
+most useful characterization of an optimal point. We work two examples in full, a quadratic
+program and the water-filling problem. Then we turn KKT into a practical tool through
+sensitivity analysis, where the optimal multipliers turn out to be the derivatives of the
+optimal value with respect to the constraints. The chapter ends by revisiting penalty
+methods, which lead directly to the interior-point idea.
+
+
 \section{The Lagrange dual function}
 \subsection{The Lagrangian}
 
@@ -1628,7 +1726,7 @@ Consider an optimization problem in standard form:
 &h_i(x) = 0, \; i = 1, 2, \ldots, p.
 \end{align*}
 We assume its domain $\mathcal{D} = \bigcap_{i = 0}^m \textbf{dom } f_i \cap \bigcap_{i = 0}^p \textbf{dom } h_i$
-is nonempty and there is a optimal value $p^*$.
+is nonempty and there is an optimal value $p^*$.
 
 Define the Lagrangian $L$ as
 \[
@@ -1644,14 +1742,14 @@ We define the Lagrange dual function (or just dual function) $g$ as
 g(\lambda, \nu) = \inf_{x \in \mathcal{D}} L(x, \lambda, \nu).
 \]
 
-Lagrange dual function has 2 important properties:
+The Lagrange dual function has two important properties:
 \begin{itemize}
   \item $g$ is always concave.
   \item For any $\lambda \succeq 0$ and $\nu$, we have $g(\lambda, \nu) \leq p^*$.
 \end{itemize}
 
 Here is a proof of the second property. Assume $\lambda \succeq 0$ and $\nu$ are arbitrary.
-For a optimal point $x^*$, we have
+For an optimal point $x^*$, we have
 \[
 L(x^*, \lambda, \nu) = f_0(x^*) + \sum_{i=1}^m \lambda_i f_i(x^*) + \sum_{i=1}^p \nu_i h_i(x^*).
 \]
@@ -1841,7 +1939,7 @@ They have the same optimal point but different optimal value. The dual problem i
 \end{align*}
 This is also different from the former dual problem.
 
-The last one problem is with a implicit constraint
+The last one problem is with an implicit constraint
 \begin{align*}
 \min \; &c^T x\\
 \text{s.t.} \; &Ax = b\\
@@ -2153,7 +2251,7 @@ if and only if the original problem is convex and strong duality holds. Written 
 \[
 p^*(u, w) \geq p^*(0, 0) - \lambda^{*T} u - \nu^{*T} w.
 \]
-This is much easy to understand. Assume $\tilde{x}$ is the optimal point of the perturbed problem.
+This is much easier to understand. Assume $\tilde{x}$ is the optimal point of the perturbed problem.
 We have
 \begin{align*}
 p^*(0, 0) &= g(\lambda^*, \nu^*)\\
@@ -2191,7 +2289,7 @@ restricted to be binary (0 or 1). These problems can be formulated as follows:
 \text{s.t.} \; &Ax \leq b\\
 &x \in \{0, 1\}, i = 1, 2, \ldots, n.
 \end{align*}
-It is much hard to solve because of the discrete nature. However, we can relax the problem by allowing
+It is much harder to solve because of the discrete nature. However, we can relax the problem by allowing
 $x$ to take any value in the interval [0, 1], which can be formulated as
 \begin{align*}
 \min \; &c^T x\\
@@ -2327,6 +2425,31 @@ point method}, which is widely used in practice.
 
 \newpage
 \chapter{Unconstrained Minimization}
+
+\subsection*{Overview}
+
+Here the book changes character. Chapters 1 through 4 were about what an optimal point is,
+and from this chapter on we care about how to actually reach one. We start with the simplest
+case possible: minimize a twice differentiable convex function with no constraints at all.
+The optimality condition is just $\nabla f(x^*) = 0$, so the whole problem reduces to
+solving a nonlinear equation, which is a useful way to think about everything that follows.
+
+The chapter then builds up from the bottom. First comes the idea of a descent method, with a
+search direction and a step size, and two ways of choosing that step: exact line search and
+backtracking. Then comes gradient descent, where the direction is simply $-\nabla f(x)$.
+Along the way we pick up the two constants that govern the analysis: the strong convexity
+parameter $m$ and the smoothness parameter $M$. The descent lemma turns them into a
+convergence rate of $1 - m/M$ per step. This is where you first see, written in a formula,
+why a badly conditioned problem makes gradient descent crawl.
+
+We then generalize the direction to steepest descent with respect to an arbitrary norm,
+where the Euclidean choice gives back gradient descent. The $l_1$ choice updates only the
+single largest coordinate. The chapter closes with Newton's method, which uses curvature
+instead of a fixed step size. It converges quadratically once it is close enough to the
+solution, and the contrast with gradient descent is the reason second-order methods still
+exist.
+
+
 \section{Unconstrained minimization problems}
 \subsection{Definition}
 In this section we mainly talk about unconstrained minimization problems, which can be formulated as
@@ -2431,7 +2554,7 @@ for some small tolerance $\epsilon > 0$.
 
 \subsection{Step size}
 \subsubsection{Fixed step size} Just set $t_k = t$ for all $k$. If $f$ satisfies
-$m I \preceq \nabla^2 f(x) \preceq M I$, a popular pick in practice is $t = 2/(m + M)$. Howeever,
+$m I \preceq \nabla^2 f(x) \preceq M I$, a popular pick in practice is $t = 2/(m + M)$. However,
 this requires knowing $m$ and $M$, which is often not available.
 
 \subsubsection{Exact line search} At each step, solve
@@ -2572,6 +2695,31 @@ where $c \in (0, 1)$ is a constant.
 
 \newpage
 \chapter{Equality Constrained Minimization}
+
+\subsection*{Overview}
+
+Everything in this chapter is a variation on one theme: we attach constraints to a problem
+we already know how to solve. When the constraints are affine, the KKT conditions from
+Chapter 4 collapse into a single linear system in $x$ and the multipliers. If $f$ is
+quadratic, that system is exactly the one we solve for a KKT point. That is the clean case,
+and it explains why equality constrained quadratic problems have a closed-form solution.
+
+When $f$ is not quadratic we fall back on Newton's method, applied to the KKT system rather
+than to $f$ itself. Each iteration minimizes a quadratic approximation of $f$ subject to
+the linearized constraint $Ad = 0$. This is the same structured linear system every time,
+so the section is short. But the structure it reveals matters: a symmetric indefinite
+system with a zero block that interior-point methods spend most of their time solving.
+
+The second half is about a different way of handling constraints: Lagrange dual ascent, then
+the augmented Lagrangian, then ADMM. The progression is worth following closely, because
+each step fixes a concrete failure of the previous one. Dual ascent is cheap, but it demands
+that $f$ be strictly convex and differentiable, which rules out the $l_1$ and TV terms that
+show up everywhere in practice. Adding a quadratic penalty restores numerical stability but
+makes the subproblem hard again. ADMM splits that subproblem by optimizing $x$ and $z$
+alternately. That is the version people actually run, especially in compressed sensing and
+distributed settings.
+
+
 \section{Equality constrained minimization problems}
 \subsection{Definition}
 Problems with equality constraints can be formulated as
@@ -2727,6 +2875,36 @@ For example, Compressed Sensing, TV regularization, distributed optimization, et
 
 \newpage
 \chapter{Advanced Optimization Algorithms}
+
+\subsection*{Overview}
+
+This chapter assumes everything before it and adds the tools that modern solvers actually
+use. Three of them come first, because the algorithms that follow are built out of them.
+Lipschitz continuity of the gradient gives the quadratic upper bound known as the descent
+lemma. The proximal operator extends the gradient step to functions that are not
+differentiable. The power iteration is here for a slightly unexpected reason: it is how you
+estimate the Lipschitz constant $L$ when computing the full Hessian would be a waste of
+time.
+
+With those in hand we can attack the problem shape that dominates applications:
+$f = g + h$, where $g$ is smooth and $h$ is convex but not differentiable. The pattern is
+always the same: take a gradient step on $g$, then apply the proximal operator of $h$. Once
+you notice that, the algorithm names stop being intimidating. Projection is the proximal
+operator of an indicator function, and soft-thresholding is the proximal operator of the
+$\ell_1$ norm. Forward-Backward Splitting is the general name for the pattern, and FGP and
+FISTA are what you get when you add Nesterov's momentum to it. The momentum is what buys
+the $O(1/k^2)$ rate in place of the $O(1/k)$ rate of plain gradient descent.
+
+The last part of the chapter returns to Newton's method from the other side. For nonlinear
+least squares, Gauss–Newton exploits the special structure of the objective and converges
+very fast when the residual at the solution is small. But it fails once $J^T J$ is
+ill-conditioned. Levenberg–Marquardt repairs exactly that by adding a damping term, which
+interpolates smoothly between gradient descent and Gauss–Newton, and it is the algorithm
+most libraries actually run. When even forming the Hessian is too expensive, quasi-Newton
+methods build an approximation out of previous steps instead. BFGS is the standard one, and
+its limited-memory variant is what makes large-scale problems tractable.
+
+
 \section{Basic tools}
 \subsection{Lipschitz}
 A differentiable function $f$ is said to have an $L$-Lipschitz continuous gradient or
@@ -2743,7 +2921,7 @@ f(y) \le f(x) + \nabla f(x)^T (y-x) + \frac{L}{2} \|y-x\|_2^2.
 This is a quadratic upper bound on $f$. It suggests that $f$ cannot grow faster than a
 quadratic function. This property is usually used to prove the convergence of optimization algorithms.
 
-There are 2 main problems of Lipschitz functions. The first one is how to find the Lipschitz
+There are two main problems of Lipschitz functions. The first one is how to find the Lipschitz
 constant $L$. The second one is what can we do if $f$ is not differentiable.
 
 For the first problem, we can use the Hessian of $f$ to find $L$. If $f$ is twice differentiable,
@@ -3142,6 +3320,26 @@ from $O(n^2)$ to $O(mn)$.
 \newpage
 \appendix
 \chapter{Quiz}
+
+\subsection*{Overview}
+
+This appendix collects a few problems that Prof.\ Ling Qing worked through in the USTC
+course videos. It is not a comprehensive exercise set, but the short list of problems I
+found worth writing out in full. Each one makes you use a technique from the main chapters
+rather than recall a definition.
+
+Quiz 1 is a convexity question with a trap in it: the geometric mean is concave on
+$\mathbb{R}^n_{++}$, but the domain here is restricted further. You have to argue from the
+preservation of concavity over a convex set instead. Quiz 2.1 asks you to show that two
+dual problems derived in 4.4 are really the same problem, which is easy to believe and a
+little tedious to prove. Quiz 2.2 is the one that matters most: it proves that the
+perturbed optimal value $p^*(u, w)$ is convex. That is the fact the whole of the
+sensitivity analysis in 4.7 rests on.
+
+I have written out full solutions rather than sketches, so to get anything out of this
+appendix, cover the solution and try the problem first. They are all short enough to finish
+in one sitting, and all of them are easier the second time.
+
 \section{Quiz 1}
 Prove the geometric mean function
 \[
